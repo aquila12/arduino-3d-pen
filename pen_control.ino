@@ -98,6 +98,7 @@ void setup() {
 void doIdle() {  
   static time_ms display_revert_time = 0;
   static bool enable_heater = false;
+  static bool enable_motor = false;
 
   yield(AUTOREPEAT_EVERY);
 
@@ -112,7 +113,7 @@ void doIdle() {
     }
 
     if(key == K_FWD) { enable_heater = true; }
-    if(key == K_REV) { enable_heater = false; }
+    if(key == K_REV && keydown_ms() > 1000) { enable_heater = false; } // Bodge
   }
 
   key_changed = false;
@@ -121,11 +122,18 @@ void doIdle() {
     int dt = temperature - temperature_setpoint;
     if(dt > 15) enable_heater = false;
     else if(dt > 0) setHeater(0);
-    else if(dt > -5) setHeater(32);
+    else if(dt > -7) setHeater(255 - (dt + 7) << 5);
     else setHeater(255);
-  }
+
+    enable_motor = (dt > -5);
+  } else enable_motor = false;
   
   if(!enable_heater) setHeater(0);
+  if(enable_motor) {
+    if(key == K_FWD) setMotorForwards(120);
+    else if(key == K_REV) { setMotorReverse(); yield(1000); } // Bodge; it will disable heater
+    else setMotorForwards(0);
+  } else setMotorForwards(0);
 
   if(current_time() > display_revert_time) setLCDNumeric(temperature);
 }
