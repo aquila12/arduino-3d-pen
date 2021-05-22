@@ -5,6 +5,15 @@
   dcegfbxa
 */
 
+#include "Arduino.h"
+
+typedef byte lcd_glyph;
+
+void updateLCDState(); // Call every 1ms
+void setLCDNumeric(int number); // -99 ... 999
+void setLCDState(lcd_glyph dig1, lcd_glyph dig2, lcd_glyph dig3);
+// NB: setLCDString(const char* str) is a macro
+
 // Glyph (packed) format
 #define SEG_A 0x1
 #define SEG_X 0x2
@@ -25,8 +34,6 @@
 
 #define BLANK 0
 #define DASH SEG_G
-
-typedef byte lcd_glyph;
 
 const lcd_glyph numeral[] = {
   /*0*/ SEG_A + SEG_B + SEG_C + SEG_D + SEG_E + SEG_F        ,
@@ -71,12 +78,14 @@ const lcd_glyph alpha[] = {
   /*z*/ BLANK,
 };
 
-inline static lcd_glyph lcd_char(const char c) {
-  if(c < '0') return BLANK;
-  if(c <= '9') return numeral[c - '0'];
-  if(c < 'A') return BLANK;
-  if(c <= 'Z') return alpha[c - 'A'];
-  if(c < 'a') return BLANK;
-  if(c <= 'z') return alpha[c - 'a'];
-  return BLANK;
+#define _CHARSET(first, last, charset) (c < first) ? BLANK : (c <= last) ? charset[c - first]
+inline static lcd_glyph _lcd_char(const char c) {
+  return
+    _CHARSET('0', '9', numeral) :
+    _CHARSET('A', 'Z', alpha) :
+    _CHARSET('a', 'z', alpha) :
+    BLANK;
 }
+
+#define _LCD_SAFECHR(s, n) _lcd_char((s "   ")[n])
+#define setLCDString(str) setLCDState(_LCD_SAFECHR(str,0), _LCD_SAFECHR(str,1), _LCD_SAFECHR(str,2))
