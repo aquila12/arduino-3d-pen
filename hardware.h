@@ -5,8 +5,6 @@
 #define SPEED_INPUT A6
 #define KEY_INPUT A5
 
-#define KEY_PRESHIFT 7
-
 // Digital pin/pulse outputs
 #define LED_READY 4
 #define HTR_ON 5

@@ -1,10 +1,11 @@
 #include "keys.h"
 #include "hardware.h"
 
-
 byte key = 0;
 bool key_changed = false;
 static time_ms key_change_t = 0;
+
+#define KEY_PRESHIFT 7
 
 static byte readKeyValue() {
   int inputValue = analogRead(KEY_INPUT);

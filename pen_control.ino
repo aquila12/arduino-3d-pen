@@ -17,18 +17,18 @@
 /*
  * Parameters:
  * R_0 9000
- * Full-scale reading 0..100
+ * Full-scale reading 0..255
  * R_L 1000
  * Assumed Linear; note this curve can be combined directly to whatever we want in terms of speeds...
  */
-int slider_points[] = { -1, 0, 2, 4, 7, 12, 21, 39, 104 };
-LinearInterpolator speed_curve(-100, 7, 8, slider_points);
+int slider_points[] = { 16, 21, 26, 33, 45, 66, 107, 255 };
+LinearInterpolator speed_curve(25, 7, 7, slider_points);
 
-int speed = 100;
+int speed = 0;
 void readSlider() {
   int result = speed_curve.interpolate(analogRead(SPEED_INPUT), speed);
-  if(result == LININT_TOO_LOW || speed < 0) speed = 0;
-  if(result == LININT_TOO_HIGH || speed > 100) speed = 100;
+  if(result == LININT_TOO_LOW || speed < 16) speed = 0;
+  if(result == LININT_TOO_HIGH || speed > 255) speed = 255;
 }
 
 
@@ -70,6 +70,7 @@ void yield(int ms) {
   time_ms end_time = current_time() + ms;
   do {
     readKeys();
+    readSlider();
     readTemperature();
     delay_ms(IDLE_DELAY);
   } while(current_time() < end_time);
@@ -82,10 +83,6 @@ void doSplash() {
   setLEDOff(); yield(1000);
 }
 
-void doWait() {
-  
-}
-
 void setup() {
   TCCR0B = TCCR0B & B11111000 | B00000101;    // set timer 0 divisor to  1024 for PWM frequency of    61.04 Hz
   
@@ -95,7 +92,7 @@ void setup() {
   doSplash();
 }
 
-void doIdle() {  
+void loop() {  
   static time_ms display_revert_time = 0;
   static bool enable_heater = false;
   static bool enable_motor = false;
@@ -130,14 +127,10 @@ void doIdle() {
   
   if(!enable_heater) setHeater(0);
   if(enable_motor) {
-    if(key == K_FWD) setMotorForwards(120);
+    if(key == K_FWD) setMotorForwards(speed);
     else if(key == K_REV) { setMotorReverse(); yield(1000); } // Bodge; it will disable heater
     else setMotorForwards(0);
   } else setMotorForwards(0);
 
   if(current_time() > display_revert_time) setLCDNumeric(temperature);
-}
-
-void loop() {
-  doIdle();
 }
