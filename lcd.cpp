@@ -3,6 +3,16 @@
 
 static byte lcdState[4]; // See lcd.h
 
+// GPIO connection:
+// SIL resistor array connected between segment lines and ballast
+// One segment is driven (+ or -) at once, and the ballast line is the opposite
+// This holds the other three segment lines at Vcc/2
+// Seg0    o--R--+          1 0 Z Z Z Z Z Z
+// Seg1    o--R--+          Z Z 1 0 Z Z Z Z
+// Seg2    o--R--+ (common) Z Z Z Z 1 0 Z Z
+// Seg3    o--R--+          Z Z Z Z Z Z 1 0
+// Ballast o--R--+          0 1 0 1 0 1 0 1
+
 // Update the LCD into the next time state
 // It rotates through 8 states, each one + then - on each segment set in turn
 // Note that there is also a ballast line in the segment output!
