@@ -115,6 +115,7 @@ void loop() {
 
   key_changed = false;
 
+  // TODO: Implement a PID loop that does the job when switching between extrude / not
   if(enable_heater) {
     int dt = temperature - temperature_setpoint;
     if(dt > 15) enable_heater = false;
